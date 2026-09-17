@@ -36,7 +36,7 @@ int main() {
     constexpr double g0 = 9.81;
 
     // plot
-    std::ofstream log("sim_output.csv");
+    std::ofstream log("../sim_output.csv");
     log << "t,pos_x,pos_y,pos_z,vel_x,vel_y,vel_z,roll,pitch,yaw,omega_x,omega_y,omega_z\n";
 
     for (int i = 0; i < N; ++i) {
