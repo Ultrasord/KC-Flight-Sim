@@ -1,10 +1,11 @@
 #include "state.hpp"
 #include "forces.hpp"
+#include "frames.hpp"
 #include "dynamics.hpp"
 #include "integrator.hpp"
-#include "frames.hpp"
 #include <Eigen/Dense>
 #include <iostream>
+#include <fstream>
 #include <cmath>
 
 int main() {
@@ -17,9 +18,9 @@ int main() {
     s.omega = Eigen::Vector3d(0.0, 0.00, 0.0);
 
     VehicleParams test_drone;
-    test_drone.inertia = Eigen::Matrix3d{{1.0, 0.0, 0.0}, 
-                                        {0.0, 2.0, 0.0}, 
-                                        {0.0, 0.0, 3.0}}; // TODO: units?
+    test_drone.inertia = Eigen::Matrix3d{{0.02, 0.0, 0.0}, 
+                                        {0.0, 0.02, 0.0}, 
+                                        {0.0, 0.0, 0.04}}; // TODO: units?
     test_drone.mass = 1.0; // kg
 
     
@@ -31,7 +32,12 @@ int main() {
     int N = static_cast<int>(t_final / dt);
     int steps_per_second = static_cast<int>(1.0 / dt);
 
+    // Constant gravity
     constexpr double g0 = 9.81;
+
+    // plot
+    std::ofstream log("sim_output.csv");
+    log << "t,pos_x,pos_y,pos_z,vel_x,vel_y,vel_z,roll,pitch,yaw,omega_x,omega_y,omega_z\n";
 
     for (int i = 0; i < N; ++i) {
         double t = i * dt; // computed from integer index, not accumulated —
@@ -59,6 +65,13 @@ int main() {
             std::cout << "  orientation  = " << euler_now.x() << " " << euler_now.y() << " " << euler_now.z()
                         << " (roll, pitch, yaw)\n\n";
         }
+
+        // Add data to csv for plotting
+        Eigen::Vector3d euler_log = s.q.toRotationMatrix().canonicalEulerAngles(0, 1, 2);
+        log << t << "," << s.pos.x() << "," << s.pos.y() << "," << s.pos.z() << ","
+            << s.vel.x() << "," << s.vel.y() << "," << s.vel.z() << ","
+            << euler_log.x() << "," << euler_log.y() << "," << euler_log.z() << ","
+            << s.omega.x() << "," << s.omega.y() << "," << s.omega.z() << "\n";
     }
 
     return 0;
